@@ -46,6 +46,7 @@
 #define NVID_APPLICATION_DISPLAY_TIMEOUT  ( 0x0009 )
 #define NVID_NOTIFICATION_DISPLAY_TIMEOUT ( 0x000a )
 #define NVID_RESERVED_DISPLAY_TIMEOUT     ( 0x000b )
+#define NVID_IDLE_CLOCK_INVERT            ( 0x0013 )
 
 /* single byte debug control */
 #define NVID_SNIFF_DEBUG           ( 0x1001 )

@@ -81,6 +81,10 @@ void InitializeIdleBufferConfig(void);
  *  is inverted */
 void InitializeIdleBufferInvert(void);
 
+/*! Initialize flash/ram value for controlling whether or not the idle clock
+ *  is inverted */
+void InitializeIdleClockInvert(void);
+
 /*! Initialize flash/ram value for whether or not to display seconds */
 void InitializeDisplaySeconds(void);
 

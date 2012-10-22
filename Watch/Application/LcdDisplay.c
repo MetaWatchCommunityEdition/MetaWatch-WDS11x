@@ -135,8 +135,10 @@ static tLcdLine pMyBuffer[NUM_LCD_ROWS];
 
 static unsigned char nvIdleBufferConfig;
 static unsigned char nvIdleBufferInvert;
+static unsigned char nvIdleClockInvert;
 
 static void SaveIdleBufferInvert(void);
+static void SaveIdleClockInvert(void);
 
 /******************************************************************************/
 
@@ -255,6 +257,7 @@ static void DisplayTask(void *pvParameters)
 
   InitializeIdleBufferConfig();
   InitializeIdleBufferInvert();
+  InitializeIdleClockInvert();
   InitializeDisplaySeconds();
   InitializeLinkAlarmEnable();
   InitializeModeTimeouts();
@@ -1035,10 +1038,10 @@ static void ConfigureDisplayHandler(tMessage* pMsg)
     nvDisplaySeconds = 0x01;
     break;
   case CONFIGURE_DISPLAY_OPTION_DONT_INVERT_DISPLAY:
-    nvIdleBufferInvert = (nvIdleBufferInvert & 0x02) | 0x00;
+    nvIdleBufferInvert = 0x00;
     break;
   case CONFIGURE_DISPLAY_OPTION_INVERT_DISPLAY:
-    nvIdleBufferInvert = (nvIdleBufferInvert & 0x02) | 0x01;
+    nvIdleBufferInvert = 0x01;
     break;
   }
 
@@ -1678,6 +1681,7 @@ static void MenuButtonHandler(unsigned char MsgOptions)
     SaveLinkAlarmEnable();
     SaveRstNmiConfiguration();
     SaveIdleBufferInvert();
+    SaveIdleClockInvert();
     SaveDisplaySeconds();
 
     /* go back to the normal idle screen */
@@ -1731,11 +1735,24 @@ static void MenuButtonHandler(unsigned char MsgOptions)
     break;
 
   case MENU_BUTTON_OPTION_INVERT_DISPLAY:
-    nvIdleBufferInvert++;
-    if ( nvIdleBufferInvert > 3 )
+    if ( nvIdleBufferInvert == 1 )
     {
       nvIdleBufferInvert = 0;
+
+      if ( nvIdleClockInvert == 1 )
+      {
+        nvIdleClockInvert = 0;
+      }
+      else
+      {
+        nvIdleClockInvert = 1;
+      }
     }
+    else
+    {
+      nvIdleBufferInvert = 1;
+    }
+
     MenuModeHandler(MENU_MODE_OPTION_UPDATE_CURRENT_PAGE);
     break;
 
@@ -2616,6 +2633,14 @@ void InitializeIdleBufferInvert(void)
                  &nvIdleBufferInvert);
 }
 
+void InitializeIdleClockInvert(void)
+{
+  nvIdleClockInvert = 0;
+  OsalNvItemInit(NVID_IDLE_CLOCK_INVERT,
+                 sizeof(nvIdleClockInvert),
+                 &nvIdleClockInvert);
+}
+
 void InitializeDisplaySeconds(void)
 {
   nvDisplaySeconds = 0;
@@ -2642,6 +2667,14 @@ static void SaveIdleBufferInvert(void)
               &nvIdleBufferInvert);
 }
 
+static void SaveIdleClockInvert(void)
+{
+  OsalNvWrite(NVID_IDLE_CLOCK_INVERT,
+              NV_ZERO_OFFSET,
+              sizeof(nvIdleClockInvert),
+              &nvIdleClockInvert);
+}
+
 static void SaveDisplaySeconds(void)
 {
   OsalNvWrite(NVID_DISPLAY_SECONDS,
@@ -2657,12 +2690,12 @@ unsigned char QueryDisplaySeconds(void)
 
 unsigned char QueryInvertDisplay(void)
 {
-  return nvIdleBufferInvert & 0x01;
+  return nvIdleBufferInvert;
 }
 
 unsigned char QueryInvertClock(void)
 {
-  return (nvIdleBufferInvert & 0x02) >> 1;
+  return nvIdleClockInvert;
 }
 
 /******************************************************************************/
